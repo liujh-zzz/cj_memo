@@ -16,14 +16,13 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      # 社区维护的 setup-cangjie action，自动下载 / 解压 / 配置 PATH
-      # STS 通道提供 1.1.3，与项目 cjpm.toml 中的 cjc-version 一致
-      # components: stdx 让项目能 import stdx.* 包
-      - name: 安装仓颉 SDK 1.1.3 STS + stdx
+      # STS 通道 1.1.0，兼容项目 cjpm.toml 中的 1.1.3。
+      # components: stdx 让项目能 import stdx.* 包。
+      - name: 安装仓颉 SDK 1.1.0 STS + stdx
         uses: Zxilly/setup-cangjie@v3
         with:
           channel: sts
-          version: 1.1.3
+          version: 1.1.0
           cjv-version: latest
           components: stdx
 
@@ -32,23 +31,43 @@ jobs:
           echo "cjc: $(cjc --version 2>&1 | head -1)"
           echo "cjpm: $(cjpm --version 2>&1 | head -1)"
 
-      # CI 环境是 Linux x86_64，而 cjpm.toml 锁定了 Windows mingw32 target，
-      # 这里运行时覆盖为 Linux native target，让 cjpm 在 Ubuntu runner 上能编译。
-      - name: 编译项目（Linux target）
+      # 项目本地 cjpm.toml 锁定了 Windows mingw32 target 和本地 stdx 路径，
+      # CI 是 Linux runner，这里动态生成 Linux 版 cjpm.toml 替换原文件。
+      - name: 生成 Linux 版 cjpm.toml
         run: |
-          cjpm build --target x86_64-linux-gnu 2>&1 | tee build_output.txt
+          cat > cjpm.toml <<'EOF'
+          [package]
+          cjc-version = "1.1.0"
+          name = "cj_memo"
+          version = "0.1.0"
+          description = "Cangjie memo service: CRUD + points/levels + reminders, JSON-file storage."
+          output-type = "executable"
+
+          [profile.build]
+          compile-option = "-g"
+
+          [target.x86_64-unknown-linux-gnu]
+            [target.x86_64-unknown-linux-gnu.bin-dependencies]
+              path-option = ["${STDX_PATH}/dynamic/stdx"]
+          EOF
+          echo "===== cjpm.toml ====="
+          cat cjpm.toml
+
+      - name: 编译项目
+        run: |
+          cjpm build 2>&1 | tee build_output.txt
 
       - name: 运行单元测试
         run: |
           set -o pipefail
-          cjpm test --target x86_64-linux-gnu 2>&1 | tee test_output.txt
+          cjpm test 2>&1 | tee test_output.txt
 
       - name: 解析测试结果
         if: always()
         run: |
-          echo "===== BUILD OUTPUT ====="
+          echo "===== BUILD TAIL ====="
           tail -30 build_output.txt || true
-          echo "===== TEST OUTPUT ====="
+          echo "===== TEST TAIL ====="
           tail -50 test_output.txt || true
 
       - name: 上传测试报告
