@@ -1,0 +1,57 @@
+name: cj-memo CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+jobs:
+  cj-unit-tests:
+    name: 仓颉编译与单元测试
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # 社区维护的 setup-cangjie action，自动下载 / 解压 / 配置 PATH
+      # 文档：https://github.com/Zxilly/setup-cangjie
+      - name: 安装仓颉 SDK 1.0.0 LTS
+        uses: Zxilly/setup-cangjie@v3
+        with:
+          channel: lts
+          version: 1.0.0
+          cjv-version: latest
+
+      - name: 验证工具链
+        run: |
+          echo "cjc: $(cjc --version 2>&1 | head -1)"
+          echo "cjpm: $(cjpm --version 2>&1 | head -1)"
+
+      - name: 编译项目
+        run: cjpm build
+
+      - name: 运行单元测试
+        run: |
+          set -o pipefail
+          cjpm test 2>&1 | tee test_output.txt
+
+      - name: 解析测试结果
+        if: always()
+        run: |
+          if grep -qE "PASSED: [0-9]+, .*FAILED: 0" test_output.txt; then
+            echo "✅ 单元测试全部通过"
+          else
+            echo "❌ 单元测试失败，请查看上面的 test_output.txt"
+            exit 1
+          fi
+
+      - name: 上传测试报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cj-test-report
+          path: test_output.txt
+          retention-days: 30
