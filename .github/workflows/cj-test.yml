@@ -16,9 +16,9 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
+      # 1) 先尝试用 Zxilly/setup-cangjie（社区维护）
       - name: 安装仓颉 SDK 1.1.0 STS + stdx
         id: setup-cj
-        continue-on-error: true
         uses: Zxilly/setup-cangjie@v3
         with:
           channel: sts
@@ -26,44 +26,43 @@ jobs:
           cjv-version: latest
           components: stdx
 
-      - name: 调试 setup-cangjie 输出
+      # 2) 验证工具链
+      - name: 验证工具链
         if: always()
         run: |
-          echo "===== setup-cj outputs ====="
-          echo "Status: ${{ steps.setup-cj.outcome }}"
-          echo "===== 环境变量中的仓颉路径 ====="
-          env | grep -i -E "cangjie|STDX|CANGJIE" || echo "no env vars"
+          set +e
+          echo "===== cjc ====="
+          cjc --version
+          echo "===== cjpm ====="
+          cjpm --version
+          echo "===== STDX_PATH env ====="
+          echo "STDX_PATH=${STDX_PATH}"
+          echo "STDX_DYNAMIC_PATH=${STDX_DYNAMIC_PATH}"
+          echo "STDX_STATIC_PATH=${STDX_STATIC_PATH}"
+          echo "===== env grep ====="
+          env | grep -i stdx || echo "no stdx env"
+          env | grep -iE "CANGJIE|HOME_JDK" || echo "no cangjie env"
+          echo "===== which cjc ====="
+          which cjc
+          which cjpm
 
-      - name: 手动安装 SDK（如果 setup-cangjie 失败）
-        if: steps.setup-cj.outcome != 'success'
+      # 3) 手动安装 stdx（如果 STDX_PATH 没设）
+      - name: 手动安装 stdx（如缺失）
+        if: env.STDX_PATH == ''
         run: |
           set -e
-          echo "===== fallback: 手动下载仓颉 SDK 1.1.0 ====="
-          wget -q "https://cangjie-lang.cn/v1/files/auth/downLoad?nsId=142267&fileName=cangjie-sdk-linux-x64-1.1.0.tar.gz&objectKey=69e9d37021f5a8178d6fd216" -O cangjie-sdk.tar.gz
-          ls -lh cangjie-sdk.tar.gz
-          tar -xzf cangjie-sdk.tar.gz
-          ls -la
-          mv cangjie cangjie-sdk
-          echo "CANGJIE_HOME=$(pwd)/cangjie-sdk" >> $GITHUB_ENV
-          echo "$(pwd)/cangjie-sdk/bin" >> $GITHUB_PATH
-
           echo "===== 下载 stdx 1.1.0.1 ====="
           wget -q "https://gitcode.com/Cangjie/cangjie_stdx/releases/download/v1.1.0.1/cangjie-stdx-linux-x64-1.1.0.1.zip" -O stdx.zip
+          ls -lh stdx.zip
           unzip -q stdx.zip
           ls -la
-          # stdx 解压后是 linux_x86_64_cjnative 这样的目录
           STDX_DIR=$(find . -maxdepth 1 -type d -name "linux_*" | head -1)
           echo "STDX_DIR=$STDX_DIR"
           echo "STDX_PATH=$(pwd)/$STDX_DIR" >> $GITHUB_ENV
+          echo "===== 验证 stdx 路径 ====="
+          ls -la "$(pwd)/$STDX_DIR/dynamic/stdx" | head -20
 
-          cjc --version
-          cjpm --version
-
-      - name: 验证工具链
-        run: |
-          echo "cjc: $(cjc --version 2>&1 | head -1)"
-          echo "cjpm: $(cjpm --version 2>&1 | head -1)"
-
+      # 4) 生成 Linux 版 cjpm.toml
       - name: 生成 Linux 版 cjpm.toml
         run: |
           cat > cjpm.toml <<'EOF'
@@ -85,23 +84,38 @@ jobs:
           cat cjpm.toml
           echo "STDX_PATH=$STDX_PATH"
 
+      # 5) 编译
       - name: 编译项目
         run: |
           cjpm build 2>&1 | tee build_output.txt
 
+      # 6) 跑测试
       - name: 运行单元测试
         run: |
           set -o pipefail
           cjpm test 2>&1 | tee test_output.txt
 
-      - name: 解析测试结果
+      # 7) 汇总
+      - name: 汇总输出
         if: always()
         run: |
           echo "===== BUILD TAIL ====="
           tail -30 build_output.txt || true
+          echo ""
           echo "===== TEST TAIL ====="
           tail -50 test_output.txt || true
+          echo ""
+          echo "===== 测试结果判定 ====="
+          if grep -qE "PASSED: 19" test_output.txt 2>/dev/null; then
+            echo "✅ 19 个用例全部通过"
+          elif grep -qE "FAILED: [^0]" test_output.txt 2>/dev/null; then
+            echo "❌ 有用例失败"
+            exit 1
+          else
+            echo "⚠️ 无法判定"
+          fi
 
+      # 8) 上传
       - name: 上传测试报告
         if: always()
         uses: actions/upload-artifact@v4
