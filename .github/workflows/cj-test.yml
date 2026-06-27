@@ -16,9 +16,9 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      # STS 通道 1.1.0，兼容项目 cjpm.toml 中的 1.1.3。
-      # components: stdx 让项目能 import stdx.* 包。
       - name: 安装仓颉 SDK 1.1.0 STS + stdx
+        id: setup-cj
+        continue-on-error: true
         uses: Zxilly/setup-cangjie@v3
         with:
           channel: sts
@@ -26,13 +26,44 @@ jobs:
           cjv-version: latest
           components: stdx
 
+      - name: 调试 setup-cangjie 输出
+        if: always()
+        run: |
+          echo "===== setup-cj outputs ====="
+          echo "Status: ${{ steps.setup-cj.outcome }}"
+          echo "===== 环境变量中的仓颉路径 ====="
+          env | grep -i -E "cangjie|STDX|CANGJIE" || echo "no env vars"
+
+      - name: 手动安装 SDK（如果 setup-cangjie 失败）
+        if: steps.setup-cj.outcome != 'success'
+        run: |
+          set -e
+          echo "===== fallback: 手动下载仓颉 SDK 1.1.0 ====="
+          wget -q "https://cangjie-lang.cn/v1/files/auth/downLoad?nsId=142267&fileName=cangjie-sdk-linux-x64-1.1.0.tar.gz&objectKey=69e9d37021f5a8178d6fd216" -O cangjie-sdk.tar.gz
+          ls -lh cangjie-sdk.tar.gz
+          tar -xzf cangjie-sdk.tar.gz
+          ls -la
+          mv cangjie cangjie-sdk
+          echo "CANGJIE_HOME=$(pwd)/cangjie-sdk" >> $GITHUB_ENV
+          echo "$(pwd)/cangjie-sdk/bin" >> $GITHUB_PATH
+
+          echo "===== 下载 stdx 1.1.0.1 ====="
+          wget -q "https://gitcode.com/Cangjie/cangjie_stdx/releases/download/v1.1.0.1/cangjie-stdx-linux-x64-1.1.0.1.zip" -O stdx.zip
+          unzip -q stdx.zip
+          ls -la
+          # stdx 解压后是 linux_x86_64_cjnative 这样的目录
+          STDX_DIR=$(find . -maxdepth 1 -type d -name "linux_*" | head -1)
+          echo "STDX_DIR=$STDX_DIR"
+          echo "STDX_PATH=$(pwd)/$STDX_DIR" >> $GITHUB_ENV
+
+          cjc --version
+          cjpm --version
+
       - name: 验证工具链
         run: |
           echo "cjc: $(cjc --version 2>&1 | head -1)"
           echo "cjpm: $(cjpm --version 2>&1 | head -1)"
 
-      # 项目本地 cjpm.toml 锁定了 Windows mingw32 target 和本地 stdx 路径，
-      # CI 是 Linux runner，这里动态生成 Linux 版 cjpm.toml 替换原文件。
       - name: 生成 Linux 版 cjpm.toml
         run: |
           cat > cjpm.toml <<'EOF'
@@ -52,6 +83,7 @@ jobs:
           EOF
           echo "===== cjpm.toml ====="
           cat cjpm.toml
+          echo "STDX_PATH=$STDX_PATH"
 
       - name: 编译项目
         run: |
