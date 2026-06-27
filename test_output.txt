@@ -1,0 +1,270 @@
+warning[0m: unused import 'std.collection.ArrayList'
+ ==> C:\Users\liujh\Desktop\cj-memo\src\file_util.cj:7:1:
+  | 
+7 | import std.collection.ArrayList
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unused import
+  | 
+  # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused import 'std.fs.File'
+  ==> C:\Users\liujh\Desktop\cj-memo\src\http_server.cj:10:16:
+   | 
+10 | import std.fs.{File, exists}
+   |                ^^^^ unused import
+   | 
+   # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused import 'std.time.*'
+  ==> C:\Users\liujh\Desktop\cj-memo\src\http_server.cj:12:1:
+   | 
+12 | import std.time.*
+   | ^^^^^^^^^^^^^^^^^ unused import
+   | 
+   # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused import 'std.collection.ArrayList'
+ ==> C:\Users\liujh\Desktop\cj-memo\src\level.cj:6:1:
+  | 
+6 | import std.collection.ArrayList
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unused import
+  | 
+  # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused import 'std.collection.ArrayList'
+ ==> C:\Users\liujh\Desktop\cj-memo\src\reward_service.cj:6:1:
+  | 
+6 | import std.collection.ArrayList
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unused import
+  | 
+  # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+  ==> C:\Users\liujh\Desktop\cj-memo\src\http_server.cj:62:17:
+   | 
+62 |     func handle(req: HttpRequest): HttpResponse {
+   |                 ^^^ unused variable
+   | 
+   # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'userId'
+  ==> C:\Users\liujh\Desktop\cj-memo\src\http_server.cj:65:43:
+   | 
+65 |     func handleWithUser(req: HttpRequest, userId: Int64): HttpResponse {
+   |                                           ^^^^^^ unused variable
+   | 
+   # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+  ==> C:\Users\liujh\Desktop\cj-memo\src\main.cj:76:24:
+   | 
+76 |     public func handle(req: HttpRequest): HttpResponse {
+   |                        ^^^ unused variable
+   | 
+   # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+  ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:81:24:
+   | 
+81 |     public func handle(req: HttpRequest): HttpResponse {
+   |                        ^^^ unused variable
+   | 
+   # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+  ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:85:32:
+   | 
+85 |     public func handleWithUser(req: HttpRequest, userId: Int64): HttpResponse {
+   |                                ^^^ unused variable
+   | 
+   # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+  ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:99:24:
+   | 
+99 |     public func handle(req: HttpRequest): HttpResponse {
+   |                        ^^^ unused variable
+   | 
+   # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:135:24:
+    | 
+135 |     public func handle(req: HttpRequest): HttpResponse {
+    |                        ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:178:24:
+    | 
+178 |     public func handle(req: HttpRequest): HttpResponse {
+    |                        ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:220:24:
+    | 
+220 |     public func handle(req: HttpRequest): HttpResponse {
+    |                        ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:242:24:
+    | 
+242 |     public func handle(req: HttpRequest): HttpResponse {
+    |                        ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:268:24:
+    | 
+268 |     public func handle(req: HttpRequest): HttpResponse {
+    |                        ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:272:32:
+    | 
+272 |     public func handleWithUser(req: HttpRequest, userId: Int64): HttpResponse {
+    |                                ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:286:24:
+    | 
+286 |     public func handle(req: HttpRequest): HttpResponse {
+    |                        ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:298:24:
+    | 
+298 |     public func handle(req: HttpRequest): HttpResponse {
+    |                        ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:323:24:
+    | 
+323 |     public func handle(req: HttpRequest): HttpResponse {
+    |                        ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:327:32:
+    | 
+327 |     public func handleWithUser(req: HttpRequest, userId: Int64): HttpResponse {
+    |                                ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:339:24:
+    | 
+339 |     public func handle(req: HttpRequest): HttpResponse {
+    |                        ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:343:32:
+    | 
+343 |     public func handleWithUser(req: HttpRequest, userId: Int64): HttpResponse {
+    |                                ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:357:24:
+    | 
+357 |     public func handle(req: HttpRequest): HttpResponse {
+    |                        ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:361:32:
+    | 
+361 |     public func handleWithUser(req: HttpRequest, userId: Int64): HttpResponse {
+    |                                ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:373:24:
+    | 
+373 |     public func handle(req: HttpRequest): HttpResponse {
+    |                        ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:398:24:
+    | 
+398 |     public func handle(req: HttpRequest): HttpResponse {
+    |                        ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+warning[0m: unused variable:'req'
+   ==> C:\Users\liujh\Desktop\cj-memo\src\handlers.cj:402:32:
+    | 
+402 |     public func handleWithUser(req: HttpRequest, userId: Int64): HttpResponse {
+    |                                ^^^ unused variable
+    | 
+    # note: this warning can be suppressed by setting the compiler option `-Woff unused`
+
+28 warnings generated, 28 warnings printed.
+[?25l[0J7[;r8
+[1F7[9999E8[0J7[;r8
+[1F7[9999E8[0J7[;r8
+[1F7[9999E8[0J7[;r8
+[1F7[9999E8[0J7[;r8
+[1F7[9999E8--------------------------------------------------------------------------------------------------
+TP: [33mcj_memo[0m, time elapsed: 33494500 ns, RESULT:
+    TCS: [33mEventStatusTest[0m, time elapsed: 1723100 ns, RESULT:
+    [[32m PASSED [0m] CASE: toIntFromInt (233700 ns)
+    [[32m PASSED [0m] CASE: fromIntRoundtrip (20900 ns)
+    [[32m PASSED [0m] CASE: fromIntUnknownDefaultsToPending (6900 ns)
+    [[32m PASSED [0m] CASE: toStringRoundtrip (14300 ns)
+    TCS: [33mEventPriorityTest[0m, time elapsed: 345200 ns, RESULT:
+    [[32m PASSED [0m] CASE: toIntFromInt (14700 ns)
+    [[32m PASSED [0m] CASE: fromIntUnknownDefaultsToMedium (13300 ns)
+    TCS: [33mPointReasonTest[0m, time elapsed: 340600 ns, RESULT:
+    [[32m PASSED [0m] CASE: toStringAll (6800 ns)
+    [[32m PASSED [0m] CASE: equalsByString (8000 ns)
+    TCS: [33mLevelRuleTest[0m, time elapsed: 609000 ns, RESULT:
+    [[32m PASSED [0m] CASE: levelForPointsBoundaries (14900 ns)
+    [[32m PASSED [0m] CASE: nextLevelPointsNormal (13700 ns)
+    [[32m PASSED [0m] CASE: nextLevelPointsMaxLevel (5800 ns)
+    [[32m PASSED [0m] CASE: levelNameAllLevels (12900 ns)
+    TCS: [33mPrizeRepositoryTest[0m, time elapsed: 29469900 ns, RESULT:
+    [[32m PASSED [0m] CASE: totalWeightMatchesSum (30800 ns)
+    [[32m PASSED [0m] CASE: listPublicHasNinePrizes (12400 ns)
+    [[32m PASSED [0m] CASE: drawOneReturnsValidPrize (2737700 ns)
+    [[32m PASSED [0m] CASE: drawOneWeightConformsToExpectedValue (25884100 ns)
+    TCS: [33mTimeUtilTest[0m, time elapsed: 475100 ns, RESULT:
+    [[32m PASSED [0m] CASE: nowMsReasonable (24900 ns)
+    [[32m PASSED [0m] CASE: nowMsIncreasing (5900 ns)
+    [[32m PASSED [0m] CASE: nowMsSaneUpperBound (5500 ns)
+Summary: TOTAL: 19
+    [32mPASSED[0m: 19, [32mSKIPPED[0m: 0, ERROR: 0
+    [31mFAILED[0m: 0
+--------------------------------------------------------------------------------------------------
+Project tests finished, time elapsed: 49556400 ns, RESULT:
+TP: [33mcj_memo[0m.*, time elapsed: 49498000 ns, RESULT:
+    PASSED:
+    TP: [33mcj_memo[0m, time elapsed: 33494500 ns
+Summary: TOTAL: 19
+    [32mPASSED[0m: 19, [32mSKIPPED[0m: 0, ERROR: 0
+    [31mFAILED[0m: 0
+--------------------------------------------------------------------------------------------------
+[0J7[;r8[?25hcjpm test success

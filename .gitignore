@@ -1,0 +1,25 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 仓颉构建产物
+target/
+build/
+
+# 测试输出（保留本地的，CI 上单独跑）
+ci_run.log
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 日志 / 临时
+*.log
+*.tmp
+*.bak
+
+# 仓颉运行时的数据文件
+data/
+*.json
+!cjpm.toml

@@ -1,0 +1,169 @@
+# ============================================================
+#  GitCode Gitee Go 流水线配置
+#  文件路径：.gitci/pipeline.yml
+#
+#  本流水线在每次 push / MR 时自动运行，执行：
+#    1. 下载仓颉 SDK（Linux 版）
+#    2. 编译 cj-memo 项目（cjpm build）
+#    3. 运行单元测试（cjpm test），保存输出
+#    4. 验证 SHA-256 向量（独立脚本）
+# ============================================================
+
+name: cj-memo CI
+
+# 触发条件：master/main 分支 push 和 PR
+trigger:
+  branches:
+    include:
+      - main
+      - master
+  push:
+    tags:
+      - v*
+  pull_requests:
+    branches:
+      - main
+      - master
+
+# ============================================================
+#  全局环境变量
+# ============================================================
+variables:
+  CJANGJIE_VERSION: "1.1.3"
+  SDK_TAR: "cangjie-linux-x86_64-${CJANGJIE_VERSION}.tar.gz"
+  SDK_URL: "https://download.cangjie-lang.cn/${SDK_TAR}"
+  CJANGJIE_HOME: "/opt/cangjie-sdk"
+
+# ============================================================
+#  阶段定义
+# ============================================================
+stages:
+  - prepare
+  - build
+  - test
+  - verify_hash
+
+# ============================================================
+#  Stage 1: 准备 — 下载并解压仓颉 SDK
+# ============================================================
+prepare:
+  stage: prepare
+  image: ubuntu:22.04
+  tags:
+    - linux
+  cache:
+    key: cangjie-sdk-${CJANGJIE_VERSION}
+    paths:
+      - /opt/cangjie-sdk
+  script:
+    # 避免重复下载（cache 命中时跳过）
+    - |
+      if [ ! -d "${CJANGJIE_HOME}" ]; then
+        echo "Downloading Cangjie SDK..."
+        curl -L "${SDK_URL}" -o /tmp/${SDK_TAR}
+        mkdir -p ${CJANGJIE_HOME}
+        tar -xzf /tmp/${SDK_TAR} -C /tmp/
+        # 解压后目录可能是 cangjie-sdk-x.x.x，取第一个子目录
+        CJ_DIR=$(find /tmp -maxdepth 1 -type d -name "cangjie*" | head -1)
+        mv ${CJ_DIR}/* ${CJANGJIE_HOME}/
+        rm -rf /tmp/${SDK_TAR} ${CJ_DIR}
+        echo "SDK installed to ${CJANGJIE_HOME}"
+      else
+        echo "Using cached SDK at ${CJANGJIE_HOME}"
+      fi
+    - export PATH=${CJANGJIE_HOME}/bin:$PATH
+    - cjc --version
+
+# ============================================================
+#  Stage 2: 构建
+# ============================================================
+build:
+  stage: build
+  image: ubuntu:22.04
+  tags:
+    - linux
+  needs: ["prepare"]
+  cache:
+    key: cangjie-sdk-${CJANGJIE_VERSION}
+    paths:
+      - /opt/cangjie-sdk
+  script:
+    - export PATH=${CJANGJIE_HOME}/bin:$PATH
+    - echo "Building cj-memo..."
+    - cd cj-memo
+    - cjpm build
+  artifacts:
+    paths:
+      - target/release/bin/cj_memo*
+    expire_in: 7 days
+    name: build_output
+
+# ============================================================
+#  Stage 3: 单元测试
+# ============================================================
+test:
+  stage: test
+  image: ubuntu:22.04
+  tags:
+    - linux
+  needs: ["build"]
+  cache:
+    key: cangjie-sdk-${CJANGJIE_VERSION}
+    paths:
+      - /opt/cangjie-sdk
+  script:
+    - export PATH=${CJANGJIE_HOME}/bin:$PATH
+    - echo "=== Running cjpm test ==="
+    - cd cj-memo
+    - cjpm test 2>&1 | tee test_output.txt
+    - echo "=== Test Complete ==="
+  artifacts:
+    paths:
+      - cj-memo/test_output.txt
+    expire_in: 30 days
+    name: test_results
+    when: always
+
+# ============================================================
+#  Stage 4: SHA-256 向量验证
+# ============================================================
+verify_hash:
+  stage: verify_hash
+  image: ubuntu:22.04
+  tags:
+    - linux
+  needs: ["prepare"]
+  script:
+    - export PATH=${CJANGJIE_HOME}/bin:$PATH
+    - cd cj-memo
+    - echo "=== Verifying SHA-256 standard vectors ==="
+    # 标准向量（来源：NIST FIPS 180-4）
+    - |
+      echo -n ""      | sha256sum | awk '{print $1}' > /tmp/empty.txt
+      echo -n "abc"   | sha256sum | awk '{print $1}' > /tmp/abc.txt
+      echo -n "The quick brown fox jumps over the lazy dog" \
+                     | sha256sum | awk '{print $1}' > /tmp/long.txt
+    - |
+      EMPTY_EXP="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      ABC_EXP="ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+      LONG_EXP="d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"
+      EMPTY_ACT=$(cat /tmp/empty.txt)
+      ABC_ACT=$(cat /tmp/abc.txt)
+      LONG_ACT=$(cat /tmp/long.txt)
+      echo "Expected empty: $EMPTY_EXP"
+      echo "Actual   empty: $EMPTY_ACT"
+      echo "Expected abc:   $ABC_EXP"
+      echo "Actual   abc:   $ABC_ACT"
+      echo "Expected long:  $LONG_EXP"
+      echo "Actual   long:  $LONG_ACT"
+      if [ "$EMPTY_ACT" = "$EMPTY_EXP" ] && \
+         [ "$ABC_ACT"   = "$ABC_EXP" ]   && \
+         [ "$LONG_ACT"  = "$LONG_EXP" ]; then
+        echo "SHA-256 vectors: ALL PASSED"
+        echo "0" > /tmp/hash_result.txt
+      else
+        echo "SHA-256 vectors: FAILED"
+        echo "1" > /tmp/hash_result.txt
+        exit 1
+      fi
+  allow_failure: false

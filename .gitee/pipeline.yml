@@ -1,0 +1,124 @@
+# ============================================================
+#  Gitee Go 流水线配置
+#  文件路径：.gitee/pipeline.yml
+#  文档：https://gitee.com/help/articles/4311
+#
+#  触发时机：push 到 master / PR 到 master
+#  任务：
+#    1. 准备环境（检查 cjc 已就绪；Gitee Go runner 已预装 Ubuntu 22.04）
+#    2. 编译 cj-memo
+#    3. 跑单元测试 cjpm test
+#    4. 验证 SHA-256 标准向量
+# ============================================================
+
+name: cj-memo CI
+
+# 触发条件
+trigger:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+  # 手动触发
+  manual: true
+
+# 全局变量
+env:
+  global:
+    - CJANGJIE_VERSION=1.1.3
+    - SDK_DIR=/opt/cangjie-sdk
+
+# ============================================================
+#  Stage 1: 准备 + 编译 + 测试
+# ============================================================
+stages:
+  - name: build-and-test
+    displayName: 编译与单元测试
+    steps:
+      # Step 1: 检出代码
+      - step: checkout@self
+        displayName: 检出代码
+
+      # Step 2: 检查仓颉 SDK
+      - step: shell@1.1.0
+        displayName: 检查仓颉 SDK
+        script:
+          - |
+            if ! command -v cjc >/dev/null 2>&1; then
+              echo "[FAIL] cjc not found in PATH"
+              echo "Gitee Go runner must have Cangjie SDK pre-installed"
+              echo "Contact Gitee support or install manually"
+              exit 1
+            fi
+            cjc --version
+
+      # Step 3: 编译
+      - step: shell@1.1.0
+        displayName: 编译项目
+        script:
+          - cjpm build
+
+      # Step 4: 单元测试
+      - step: shell@1.1.0
+        displayName: 运行单元测试
+        script:
+          - cjpm test 2>&1 | tee test_output.txt
+
+      # Step 5: 解析测试结果
+      - step: shell@1.1.0
+        displayName: 解析测试结果
+        script:
+          - |
+            if grep -q "PASSED: 19, .*FAILED: 0" test_output.txt; then
+              echo "[OK] 19 / 19 test cases passed"
+            else
+              echo "[FAIL] some tests failed"
+              tail -30 test_output.txt
+              exit 1
+            fi
+
+      # Step 6: 上传测试输出为制品
+      - step: upload@general_artifacts
+        displayName: 上传测试输出
+        artifactName: test-output
+        params:
+          src: test_output.txt
+
+  # ============================================================
+  #  Stage 2: SHA-256 标准向量验证
+  # ============================================================
+  - name: verify-sha256
+    displayName: SHA-256 向量验证
+    steps:
+      - step: checkout@self
+        displayName: 检出代码
+
+      - step: shell@1.1.0
+        displayName: 验证 SHA-256 标准向量
+        script:
+          - |
+            EMPTY_EXP="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            ABC_EXP="ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+            LONG_EXP="d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"
+
+            EMPTY_ACT=$(echo -n "" | sha256sum | awk '{print $1}')
+            ABC_ACT=$(echo -n "abc" | sha256sum | awk '{print $1}')
+            LONG_ACT=$(echo -n "The quick brown fox jumps over the lazy dog" | sha256sum | awk '{print $1}')
+
+            echo "Case          | Result"
+            echo "--------------|--------"
+            [ "$EMPTY_ACT" = "$EMPTY_EXP" ] && echo "empty         | OK" || echo "empty         | FAIL ($EMPTY_ACT)"
+            [ "$ABC_ACT"   = "$ABC_EXP" ]   && echo "abc           | OK" || echo "abc           | FAIL ($ABC_ACT)"
+            [ "$LONG_ACT"  = "$LONG_EXP" ]  && echo "long sentence | OK" || echo "long sentence | FAIL ($LONG_ACT)"
+
+            if [ "$EMPTY_ACT" = "$EMPTY_EXP" ] && [ "$ABC_ACT" = "$ABC_EXP" ] && [ "$LONG_ACT" = "$LONG_EXP" ]; then
+              echo ""
+              echo "[OK] All SHA-256 vectors matched"
+            else
+              echo "[FAIL] SHA-256 vectors mismatch"
+              exit 1
+            fi

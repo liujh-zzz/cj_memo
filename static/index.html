@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>学习激励助手</title>
+<style>
+  :root {
+    --pri: #6366f1;
+    --pri2: #8b5cf6;
+    --pri3: #ec4899;
+    --ok: #10b981;
+    --warn: #f59e0b;
+    --bad: #ef4444;
+    --bg-1: #667eea;
+    --bg-2: #764ba2;
+    --bg-3: #f093fb;
+    --card: rgba(255,255,255,0.85);
+    --line: rgba(255,255,255,0.5);
+    --muted: #64748b;
+    --text: #1e293b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    max-width: 960px; margin: 0 auto; padding: 24px 16px 60px;
+    color: var(--text); line-height: 1.6;
+    background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  h1 {
+    margin: 0 0 4px; font-size: 32px; font-weight: 700;
+    background: linear-gradient(90deg, #fff, #fde68a);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 1px;
+  }
+  .sub { color: rgba(255,255,255,.85); margin-bottom: 24px; font-size: 14px; }
+  section {
+    background: var(--card);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 18px; padding: 20px 24px; margin-bottom: 18px;
+    box-shadow: 0 8px 32px rgba(31,38,135,0.15);
+  }
+  h2 { margin: 0 0 14px; font-size: 18px; color: var(--text); font-weight: 700; }
+  h3 { margin: 0 0 10px; font-size: 14px; color: #475569; font-weight: 600; }
+  button {
+    background: linear-gradient(135deg, var(--pri), var(--pri2));
+    color: white; border: 0;
+    padding: 10px 20px; border-radius: 10px; cursor: pointer;
+    margin-right: 6px; font-size: 14px; font-weight: 600;
+    transition: all .2s;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+  }
+  button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(99,102,241,0.4);
+  }
+  button:active:not(:disabled) { transform: translateY(0); }
+  button:disabled {
+    background: #cbd5e1; cursor: not-allowed; box-shadow: none;
+  }
+  button.secondary {
+    background: linear-gradient(135deg, #64748b, #475569);
+    box-shadow: 0 4px 12px rgba(100,116,139,0.3);
+  }
+  button.secondary:hover:not(:disabled) {
+    box-shadow: 0 6px 16px rgba(100,116,139,0.4);
+  }
+  button.ok { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+  button.warn { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+  button.bad { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+  input, textarea, select {
+    width: 100%; padding: 10px 14px; margin: 4px 0 12px;
+    border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px;
+    background: rgba(255,255,255,0.9);
+    transition: all .2s;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none; border-color: var(--pri);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    background: white;
+  }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .row > * { flex: 1; min-width: 120px; }
+  .dt-label {
+    font-size: 12px; color: var(--muted); margin-bottom: 4px;
+    font-weight: 600; letter-spacing: 0.5px;
+  }
+  .stat {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-right: 16px; font-size: 13px; color: #475569;
+  }
+  .stat b {
+    color: white; font-size: 18px; font-weight: 700;
+    background: linear-gradient(90deg, #6366f1, #ec4899);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .tag {
+    display: inline-block;
+    background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+    color: #4338ca;
+    padding: 3px 10px; border-radius: 12px;
+    font-size: 12px; margin-right: 4px; font-weight: 600;
+  }
+  .event {
+    border-left: 4px solid var(--pri); padding: 10px 14px; margin: 8px 0;
+    background: linear-gradient(90deg, rgba(99,102,241,0.06), rgba(255,255,255,0.4));
+    border-radius: 0 10px 10px 0;
+    transition: transform .15s;
+  }
+  .event:hover { transform: translateX(4px); }
+  .event.completed {
+    border-color: var(--ok);
+    background: linear-gradient(90deg, rgba(16,185,129,0.08), rgba(255,255,255,0.4));
+  }
+  .event.expired {
+    border-color: #94a3b8;
+    background: rgba(241,245,249,0.6); color: var(--muted);
+  }
+  .product {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; border: 1.5px solid #e2e8f0; border-radius: 12px;
+    margin: 8px 0; background: rgba(255,255,255,0.7);
+    transition: all .2s;
+  }
+  .product:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99,102,241,0.12);
+    border-color: var(--pri);
+  }
+  .product .info { flex: 1; }
+  .product .info b { font-size: 15px; color: var(--text); font-weight: 700; }
+  .product .info .desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .product .cost {
+    font-size: 16px; margin: 0 14px; font-weight: 700;
+    background: linear-gradient(90deg, #f59e0b, #ef4444);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* 转盘 */
+  .wheel-wrap { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+  .wheel-box { position: relative; width: 320px; height: 320px; }
+  #wheel {
+    width: 320px; height: 320px; border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 12px 40px rgba(99,102,241,0.3), inset 0 0 0 4px rgba(255,255,255,0.6);
+    transition: transform 4.5s cubic-bezier(.17, .67, .15, .99);
+  }
+  .pointer {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 14px solid transparent; border-right: 14px solid transparent;
+    border-top: 28px solid #ef4444; z-index: 3;
+    filter: drop-shadow(0 4px 6px rgba(239,68,68,0.4));
+  }
+  .wheel-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 84px; height: 84px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--pri), var(--pri3));
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-weight: bold; cursor: pointer; z-index: 2;
+    box-shadow: 0 6px 20px rgba(99,102,241,0.5); user-select: none;
+    transition: transform .15s;
+    font-size: 16px;
+  }
+  .wheel-center:hover:not(.disabled) { transform: translate(-50%,-50%) scale(1.08); }
+  .wheel-center:active { transform: translate(-50%,-50%) scale(.95); }
+  .wheel-center.disabled { background: linear-gradient(135deg, #94a3b8, #64748b); cursor: not-allowed; opacity: 0.6; }
+  .wheel-info { flex: 1; min-width: 240px; }
+  .wheel-info .prize-list {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    margin-top: 10px;
+  }
+  .wheel-info .prize-item {
+    font-size: 12px; padding: 8px 12px; border-radius: 10px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(236,72,153,0.06));
+    border: 1px solid rgba(99,102,241,0.15);
+    transition: transform .15s;
+  }
+  .wheel-info .prize-item:hover { transform: translateY(-1px); }
+  .wheel-info .prize-item .pct { color: var(--muted); float: right; font-weight: 600; }
+
+  .result-modal {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    z-index: 10; align-items: center; justify-content: center;
+  }
+  .result-modal.show { display: flex; }
+  .result-box {
+    background: white; border-radius: 18px; padding: 28px;
+    max-width: 380px; width: 90%; text-align: center;
+    animation: pop .35s cubic-bezier(.34, 1.56, .64, 1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  @keyframes pop { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .result-box h2 {
+    color: var(--text); margin: 0 0 8px; font-size: 20px;
+    background: linear-gradient(90deg, var(--pri), var(--pri3));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .result-box .prize {
+    font-size: 32px; font-weight: 800; margin: 16px 0;
+    background: linear-gradient(90deg, #f59e0b, #ef4444);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .result-box ul {
+    list-style: none; padding: 0; text-align: left;
+    max-height: 220px; overflow: auto;
+    background: #f8fafc; border-radius: 10px; padding: 8px 14px;
+  }
+  .result-box ul li {
+    padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-size: 13px;
+  }
+  .result-box ul li:last-child { border-bottom: 0; }
+
+  pre {
+    background: #1e293b; color: #86efac; padding: 12px; border-radius: 10px;
+    overflow: auto; max-height: 280px; font-size: 12px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    border: 1px solid #334155;
+  }
+  .hidden { display: none; }
+  .err { color: var(--bad); font-size: 13px; }
+  .ok-msg { color: var(--ok); font-size: 13px; font-weight: 600; }
+  .record {
+    font-size: 13px; padding: 8px 0;
+    border-bottom: 1px dashed #e2e8f0;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .record:last-child { border-bottom: 0; }
+  .record .delta.pos {
+    color: var(--ok); font-weight: 700;
+  }
+  .record .delta.neg { color: var(--bad); font-weight: 700; }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 8px;
+    font-size: 11px; margin-left: 6px; font-weight: 600;
+  }
+  .badge.points {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1e40af;
+  }
+  .badge.shop {
+    background: linear-gradient(135deg, #fed7aa, #fdba74);
+    color: #c2410c;
+  }
+</style>
+</head>
+<body>
+
+<h1>学习激励助手</h1>
+<div class="sub"></div>
+
+<div id="auth">
+  <section>
+    <h2>登录 / 注册</h2>
+    <input id="username" placeholder="用户名（3-32 字符）">
+    <input id="password" type="password" placeholder="密码（≥6 位）">
+    <div class="row">
+      <button onclick="doRegister()">注册</button>
+      <button class="secondary" onclick="doLogin()">登录</button>
+    </div>
+    <p id="authMsg" class="err"></p>
+  </section>
+</div>
+
+<div id="app" class="hidden">
+
+  <section>
+    <h2>我的信息</h2>
+    <div id="userInfo"></div>
+    <button class="secondary" onclick="doLogout()">退出登录</button>
+  </section>
+
+  <!-- ============ 抽奖 ============ -->
+  <section>
+    <h2>🎰 积分抽奖</h2>
+    <div id="lotteryStatus" style="margin-bottom:12px;"></div>
+    <div class="wheel-wrap">
+      <div class="wheel-box">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="320" height="320"></canvas>
+        <div id="wheelBtn" class="wheel-center" onclick="doDraw(1)"></div>
+      </div>
+      <div class="wheel-info">
+        <h3>操作</h3>
+        <div class="row">
+          <button onclick="doDraw(1)" id="btn1">单抽 <span style="opacity:.7">-30</span></button>
+          <button class="ok" onclick="doDraw(10)" id="btn10">十连 <span style="opacity:.7">-280</span></button>
+          <button class="secondary" id="btnFree" onclick="doDrawFree()">免费 1 次</button>
+        </div>
+        <p id="lotteryMsg" class="err"></p>
+        <h3 style="margin-top:14px;">奖品池（按权重）</h3>
+        <div id="prizeList" class="prize-list"></div>
+      </div>
+    </div>
+    <h3 style="margin-top:18px;">最近中奖记录</h3>
+    <div id="lotteryHistory"></div>
+  </section>
+
+  <!-- ============ 积分余额 ============ -->
+  <section>
+    <h2>💰 积分流水</h2>
+    <div id="points"></div>
+  </section>
+
+  <!-- ============ 商品兑换 ============ -->
+  <section>
+    <h2>🛍️ 积分商城</h2>
+    <div id="shopProducts"></div>
+    <h3 style="margin-top:14px;">我的订单</h3>
+    <div id="shopOrders"></div>
+  </section>
+
+  <!-- ============ 事件 ============ -->
+  <section>
+    <h2>📝 备忘录</h2>
+    <h3>新建事件</h3>
+    <input id="title" placeholder="标题（1-50 字符）">
+    <textarea id="content" placeholder="详情（可选，最多 500 字符）" rows="2"></textarea>
+    <input id="tags" placeholder="标签，英文逗号分隔，例如：学习,工作">
+    <div class="row" style="align-items:flex-end;">
+      <div style="flex:1;min-width:90px;display:flex;flex-direction:column;">
+        <label class="dt-label">月</label>
+        <input id="dt-month" type="number" min="1" max="12" placeholder="月">
+      </div>
+      <div style="flex:1;min-width:90px;display:flex;flex-direction:column;">
+        <label class="dt-label">日</label>
+        <input id="dt-day" type="number" min="1" max="31" placeholder="日">
+      </div>
+      <div style="flex:1;min-width:90px;display:flex;flex-direction:column;">
+        <label class="dt-label">时</label>
+        <input id="dt-hour" type="number" min="0" max="23" placeholder="时">
+      </div>
+      <div style="flex:1;min-width:90px;display:flex;flex-direction:column;">
+        <label class="dt-label">分</label>
+        <input id="dt-minute" type="number" min="0" max="59" placeholder="分">
+      </div>
+      <select id="remind" style="flex:1.4;min-width:140px;">
+        <option value="10">提前 10 分钟</option>
+        <option value="60" selected>提前 1 小时</option>
+        <option value="1440">提前 1 天</option>
+        <option value="4320">提前 3 天</option>
+      </select>
+    </div>
+    <div class="row">
+      <select id="priority">
+        <option value="0">低优先级</option>
+        <option value="1" selected>中优先级</option>
+        <option value="2">高优先级</option>
+      </select>
+    </div>
+    <div class="row">
+      <button onclick="doCreate()">创建</button>
+      <input id="q" placeholder="🔍 搜索标题/标签/内容..." oninput="loadList('all')" style="flex:2">
+    </div>
+    <p id="createMsg" class="err"></p>
+    <h3 style="margin-top:14px;">事件列表（按优先级降序 → 截止时间升序）</h3>
+    <div class="row">
+      <button onclick="loadList('all')">全部</button>
+      <button onclick="loadList('pending')">待完成</button>
+      <button onclick="loadList('completed')">已完成</button>
+      <button onclick="loadList('expired')">已过期</button>
+      <button class="secondary" onclick="scanUpcoming()">检查提醒</button>
+    </div>
+    <div id="eventList"></div>
+  </section>
+</div>
+
+<!-- 结果弹窗 -->
+<div id="resultModal" class="result-modal" onclick="if(event.target===this)closeModal()">
+  <div class="result-box">
+    <h2 id="modalTitle">🎉 恭喜中奖！</h2>
+    <div id="modalContent"></div>
+    <button onclick="closeModal()" style="margin-top:12px;">关闭</button>
+  </div>
+</div>
+
+<!-- debug 框默认隐藏，需要时可在 F12 console 看 -->
+<pre id="debug" class="hidden"></pre>
+
+<script>
+const API = "http://127.0.0.1:8080";
+let token = localStorage.getItem("cj_memo_token") || "";
+let userId = localStorage.getItem("cj_memo_userid") || "";
+let prizesCache = [];
+let totalWeight = 0;
+let spinning = false;
+let rotation = 0;
+
+function log(s) {
+  document.getElementById("debug").textContent = typeof s === "string" ? s : JSON.stringify(s, null, 2);
+}
+
+// 错误显示：统一走 alert（系统弹窗）。如果 alert 被屏蔽则降级为顶部红条。
+function showError(msg) {
+  try { window.alert(msg); return; } catch (_) {}
+  let bar = document.getElementById("errorBar");
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = "errorBar";
+    bar.style.cssText = "position:fixed;top:0;left:0;right:0;background:#e53935;color:#fff;padding:12px 16px;z-index:99999;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.2);display:flex;justify-content:space-between;align-items:center;";
+    document.body.appendChild(bar);
+  }
+  bar.innerHTML = `<span>⚠️ ${msg}</span><button style="background:#fff;color:#e53935;border:0;padding:4px 12px;border-radius:4px;cursor:pointer" onclick="this.parentNode.remove()">关闭</button>`;
+  setTimeout(() => { if (bar && bar.parentNode) bar.remove(); }, 6000);
+}
+
+async function call(method, path, body) {
+  const opts = { method, headers: { "Content-Type": "application/json" } };
+  if (token) opts.headers["Authorization"] = "Bearer " + token;
+  if (body) opts.body = JSON.stringify(body);
+  let r;
+  try {
+    r = await fetch(API + path, opts);
+  } catch (e) {
+    showError("网络连接失败：" + e.message);
+    return { ok: false, message: "网络连接失败", _err: true };
+  }
+  let j;
+  try { j = await r.json(); } catch (_) { j = {}; }
+  // 任何非成功（HTTP 非 2xx 或 业务 ok=false）都弹窗
+  if (!r.ok || j.ok === false) {
+    showError(j.message || ("HTTP " + r.status));
+  }
+  const d = document.getElementById("debug");
+  if (d && !d.classList.contains("hidden")) {
+    d.textContent = JSON.stringify({ method, path, status: r.status, body: j }, null, 2);
+  }
+  console.debug("[API]", method, path, j);
+  return j;
+}
+
+/* ===== 登录注册 ===== */
+async function doRegister() {
+  const u = document.getElementById("username").value.trim();
+  const p = document.getElementById("password").value;
+  const r = await call("POST", "/api/user/register", { username: u, password: p });
+  if (r.ok) { token = r.data.token; userId = r.data.userId; saveAuth(); enterApp(); }
+  else showErr("authMsg", r.message);
+}
+async function doLogin() {
+  const u = document.getElementById("username").value.trim();
+  const p = document.getElementById("password").value;
+  const r = await call("POST", "/api/user/login", { username: u, password: p });
+  if (r.ok) { token = r.data.token; userId = r.data.userId; saveAuth(); enterApp(); }
+  else showErr("authMsg", r.message);
+}
+function doLogout() {
+  token = ""; userId = ""; localStorage.removeItem("cj_memo_token"); localStorage.removeItem("cj_memo_userid");
+  document.getElementById("auth").classList.remove("hidden");
+  document.getElementById("app").classList.add("hidden");
+}
+function saveAuth() {
+  localStorage.setItem("cj_memo_token", token);
+  localStorage.setItem("cj_memo_userid", userId);
+}
+
+async function enterApp() {
+  document.getElementById("auth").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  fillDeadlineDefault();
+  // 逐个加载，任一失败不影响其他（call 内部已弹窗）
+  await loadUserInfo().catch(e => console.error(e));
+  await loadLotteryInfo().catch(e => console.error(e));
+  await loadPoints().catch(e => console.error(e));
+  await loadShop().catch(e => console.error(e));
+  await loadList("all").catch(e => console.error(e));
+}
+
+/* ===== 用户信息 ===== */
+async function loadUserInfo() {
+  const r = await call("GET", "/api/user/info");
+  if (r.ok) {
+    const u = r.data;
+    document.getElementById("userInfo").innerHTML =
+      `<span class="stat">用户: <b>${u.username}</b></span>
+       <span class="stat">积分: <b>${u.totalPoints}</b></span>
+       <span class="stat">等级: <b>Lv${u.level}</b></span>
+       <span class="stat">下一级: <b>${u.nextLevelPoints >= 0 ? u.nextLevelPoints : "已满级"}</b></span>
+       <span class="stat">已完成: <b>${u.completedCount}</b></span>`;
+  }
+}
+
+/* ===== 抽奖 ===== */
+function drawWheel() {
+  const canvas = document.getElementById("wheel");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2, R = W / 2 - 6;
+  const N = prizesCache.length || 9;
+  const colors = ["#1e88e5","#26c6da","#43a047","#fb8c00","#8e24aa","#e53935","#00897b","#5e35b1","#f4511e"];
+  ctx.clearRect(0, 0, W, H);
+  const slice = 2 * Math.PI / N;
+  for (let i = 0; i < N; i++) {
+    const start = -Math.PI / 2 + i * slice;
+    const end = start + slice;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, start, end);
+    ctx.closePath();
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fill();
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // 文字
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + slice / 2);
+    ctx.textAlign = "right";
+    ctx.fillStyle = "white";
+    ctx.font = "bold 13px sans-serif";
+    const text = (prizesCache[i]?.name || "奖品" + (i + 1)).substring(0, 6);
+    ctx.fillText(text, R - 14, 5);
+    ctx.restore();
+  }
+}
+
+async function loadLotteryInfo() {
+  const r = await call("GET", "/api/lottery/info");
+  if (!r.ok) return;
+  const d = r.data;
+  prizesCache = d.prizes;
+  totalWeight = d.prizes.reduce((s, p) => s + p.weight, 0);
+  drawWheel();
+  const status = document.getElementById("lotteryStatus");
+  status.innerHTML = `
+    <span class="stat">当前积分: <b>${d.currentPoints}</b></span>
+    <span class="stat">单抽: <b style="color:var(--warn)">${d.costSingle}</b> 分</span>
+    <span class="stat">十连: <b style="color:var(--warn)">${d.costTen}</b> 分</span>
+    <span class="stat">今日免费: <b style="color:${d.freeAvailable ? 'var(--ok)' : 'var(--muted)'}">${d.freeAvailable ? '可领取' : '已用'}</b></span>`;
+  document.getElementById("btnFree").disabled = !d.freeAvailable;
+  document.getElementById("btnFree").style.opacity = d.freeAvailable ? "1" : "0.5";
+
+  // 奖品池
+  const list = document.getElementById("prizeList");
+  list.innerHTML = d.prizes.map(p => {
+    const pct = ((p.weight / totalWeight) * 100).toFixed(1);
+    const tag = p.rewardType === "points"
+      ? `<span class="badge points">积分</span>`
+      : `<span class="badge shop">实物</span>`;
+    return `<div class="prize-item">${tag} ${p.name}<span class="pct">${pct}%</span></div>`;
+  }).join("");
+
+  // 最近中奖
+  const hist = document.getElementById("lotteryHistory");
+  if (!d.recent || d.recent.length === 0) {
+    hist.innerHTML = '<span style="color:var(--muted);font-size:13px;">（暂无）</span>';
+  } else {
+    hist.innerHTML = d.recent.map(r => {
+      const t = new Date(r.createdAt).toLocaleString();
+      const tag = r.rewardType === "points"
+        ? `<span class="badge points">+${r.pointsDelta}积分</span>`
+        : `<span class="badge shop">${r.prizeName}</span>`;
+      return `<div class="record"><span>${r.prizeName} ${tag}</span><span style="color:var(--muted);font-size:12px;">${t}</span></div>`;
+    }).join("");
+  }
+}
+
+async function doDraw(count) {
+  if (spinning) return;
+  const msg = document.getElementById("lotteryMsg");
+  msg.textContent = "";
+  await doDrawWith(count, false);
+}
+async function doDrawFree() {
+  if (spinning) return;
+  const msg = document.getElementById("lotteryMsg");
+  msg.textContent = "";
+  await doDrawWith(1, true);
+}
+
+async function doDrawWith(count, useFree) {
+  spinning = true;
+  document.getElementById("btn1").disabled = true;
+  document.getElementById("btn10").disabled = true;
+  document.getElementById("btnFree").disabled = true;
+  document.getElementById("wheelBtn").classList.add("disabled");
+  document.getElementById("wheelBtn").textContent = "";
+
+  const r = await call("POST", "/api/lottery/draw", { count, useFree });
+  spinning = false;
+  document.getElementById("btn1").disabled = false;
+  document.getElementById("btn10").disabled = false;
+  document.getElementById("wheelBtn").classList.remove("disabled");
+  document.getElementById("wheelBtn").innerHTML = "";
+
+  if (!r.ok) {
+    showErr("lotteryMsg", r.message);
+    await loadLotteryInfo();
+    return;
+  }
+
+  // 转盘旋转 → 指向最后一条中奖（多抽时停在最后一个）
+  const rewards = r.data.rewards;
+  const targetPrize = rewards[rewards.length - 1];
+  const idx = prizesCache.findIndex(p => p.id === targetPrize.prizeId);
+  if (idx >= 0) {
+    const N = prizesCache.length;
+    const sliceDeg = 360 / N;
+    // 让 idx 对应的扇形中心落在指针正上方（-90°）
+    const targetCenter = idx * sliceDeg + sliceDeg / 2;
+    // 当前已旋转的角度 target 位置在 (rotation + targetCenter) % 360
+    // 期望 = -targetCenter（让扇区中心到顶部）
+    // 多转 6 圈 + 修正
+    const cur = ((rotation % 360) + 360) % 360;
+    const delta = ((-targetCenter - cur) % 360 + 360) % 360;
+    rotation = rotation + 360 * 6 + delta;
+    document.getElementById("wheel").style.transform = `rotate(${rotation}deg)`;
+  }
+
+  setTimeout(async () => {
+    // 显示结果
+    showResult(r.data);
+    await loadUserInfo();
+    await loadLotteryInfo();
+    await loadPoints();
+    await loadShop();
+  }, 4600);
+}
+
+function showResult(d) {
+  const modal = document.getElementById("resultModal");
+  document.getElementById("modalTitle").textContent = d.usedFree ? "🎁 免费抽奖结果" : "🎉 抽奖结果";
+  const items = d.rewards.map(r => {
+    const tag = r.rewardType === "points"
+      ? `+${r.pointsDelta} 积分`
+      : `🎁 ${r.prizeName}`;
+    return `<li>${r.prizeName} → <b>${tag}</b></li>`;
+  }).join("");
+  const costLine = d.cost > 0
+    ? `<p style="color:var(--muted);font-size:13px;">本次消耗 ${d.cost} 分</p>`
+    : `<p style="color:var(--ok);font-size:13px;">本次免费</p>`;
+  document.getElementById("modalContent").innerHTML = `
+    ${costLine}
+    <ul>${items}</ul>
+    <p>当前积分余额: <b style="color:var(--pri);font-size:18px;">${d.balanceAfter}</b></p>
+  `;
+  modal.classList.add("show");
+}
+function closeModal() {
+  document.getElementById("resultModal").classList.remove("show");
+}
+
+/* ===== 积分 ===== */
+async function loadPoints() {
+  const r = await call("GET", "/api/user/points");
+  if (!r.ok) return;
+  const d = r.data;
+  const recDiv = document.getElementById("points");
+  if (!d.recent || d.recent.length === 0) {
+    recDiv.innerHTML = `<p>总积分 <b>${d.totalPoints}</b> | 等级 <b>Lv${d.level}</b> | 已完成 <b>${d.completedCount}</b></p>
+      <p style="color:var(--muted);font-size:13px;">（暂无流水）</p>`;
+    return;
+  }
+  recDiv.innerHTML = `
+    <p>总积分 <b>${d.totalPoints}</b> | 等级 <b>Lv${d.level}</b> | 已完成 <b>${d.completedCount}</b></p>
+    ${d.recent.map(r => {
+      const t = new Date(r.createdAt).toLocaleString();
+      const cls = r.delta > 0 ? "pos" : "neg";
+      const sign = r.delta > 0 ? "+" : "";
+      return `<div class="record">
+        <span><span class="delta ${cls}">${sign}${r.delta}</span> ${r.reasonName} · ${r.note}</span>
+        <span style="color:var(--muted);font-size:12px;">${t} · 余 ${r.balanceAfter}</span>
+      </div>`;
+    }).join("")}
+  `;
+}
+
+/* ===== 商城 ===== */
+async function loadShop() {
+  const [prods, orders] = await Promise.all([
+    call("GET", "/api/shop/products"),
+    call("GET", "/api/shop/orders")
+  ]);
+  const div = document.getElementById("shopProducts");
+  if (!prods.ok) { div.textContent = prods.message; return; }
+  div.innerHTML = prods.data.map(p => `
+    <div class="product">
+      <div class="info">
+        <b>${p.name}</b> <span style="color:var(--muted);font-size:12px;">库存 ${p.stockName}</span>
+        <div class="desc">${p.description}</div>
+      </div>
+      <span class="cost">${p.cost} 分</span>
+      <button onclick="buyProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}', 1)">兑换</button>
+    </div>
+  `).join("");
+  const od = document.getElementById("shopOrders");
+  if (!orders.ok || !orders.data || orders.data.length === 0) {
+    od.innerHTML = '<span style="color:var(--muted);font-size:13px;">（暂无订单）</span>';
+  } else {
+    od.innerHTML = orders.data.map(o => {
+      const t = new Date(o.createdAt).toLocaleString();
+      return `<div class="record">
+        <span>${o.productName} × <b>${o.qty}</b> · -${o.totalCost} 分</span>
+        <span style="color:var(--muted);font-size:12px;">${t}</span>
+      </div>`;
+    }).join("");
+  }
+}
+async function buyProduct(id, name, qty) {
+  if (!confirm(`确认兑换 ${name} × ${qty}？`)) return;
+  const r = await call("POST", "/api/shop/buy", { productId: id, qty });
+  if (r && r.ok) {
+    alert("兑换成功！");
+    await loadPoints();
+    await loadShop();
+  }
+}
+
+/* ===== 事件 ===== */
+function fillDeadlineDefault() {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() + 60);
+  document.getElementById("dt-month").value = d.getMonth() + 1;
+  document.getElementById("dt-day").value = d.getDate();
+  document.getElementById("dt-hour").value = d.getHours();
+  document.getElementById("dt-minute").value = d.getMinutes();
+}
+function readDeadlineMs() {
+  const m = parseInt(document.getElementById("dt-month").value, 10);
+  const d = parseInt(document.getElementById("dt-day").value, 10);
+  const h = parseInt(document.getElementById("dt-hour").value, 10);
+  const mi = parseInt(document.getElementById("dt-minute").value, 10);
+  if (!m || !d || isNaN(h) || isNaN(mi)) return { ok: false, msg: "请填写完整的截止时间（月/日/时/分）" };
+  if (m < 1 || m > 12) return { ok: false, msg: "月份应为 1-12" };
+  if (d < 1 || d > 31) return { ok: false, msg: "日期应为 1-31" };
+  if (h < 0 || h > 23) return { ok: false, msg: "小时应为 0-23" };
+  if (mi < 0 || mi > 59) return { ok: false, msg: "分钟应为 0-59" };
+  const now = new Date();
+  const year = now.getFullYear();
+  const candidate = new Date(year, m - 1, d, h, mi, 0, 0);
+  if (candidate.getMonth() !== m - 1 || candidate.getDate() !== d) {
+    return { ok: false, msg: "日期不合法（例如 2 月没有 30 日）" };
+  }
+  const ms = candidate.getTime();
+  if (ms <= Date.now()) {
+    return { ok: false, msg: "截止时间必须晚于当前时间" };
+  }
+  return { ok: true, ms };
+}
+async function doCreate() {
+  const title = document.getElementById("title").value.trim();
+  const content = document.getElementById("content").value;
+  const tags = document.getElementById("tags").value.split(",").map(s=>s.trim()).filter(Boolean);
+  const r0 = readDeadlineMs();
+  if (!r0.ok) { showErr("createMsg", r0.msg); return; }
+  const deadline = r0.ms;
+  const remindMinutes = parseInt(document.getElementById("remind").value);
+  const priority = parseInt(document.getElementById("priority").value);
+  const r = await call("POST", "/api/event", { title, content, tags, deadline, remindMinutes, priority });
+  if (r.ok) { showOk("createMsg", "创建成功 id=" + r.data.eventId); loadList("all"); }
+  else showErr("createMsg", r.message);
+}
+async function loadList(status) {
+  const q = document.getElementById("q").value.trim();
+  const params = new URLSearchParams();
+  if (status !== "all") params.set("status", status);
+  if (q) params.set("q", q);
+  const qs = params.toString();
+  const path = "/api/event/list" + (qs ? "?" + qs : "");
+  const r = await call("GET", path);
+  if (!r.ok) return;
+  const arr = r.data;
+  const html = arr.map(n => {
+    const cls = ["pending","completed","expired"][n.status] || "pending";
+    const tags = (n.tags || []).map(t => `<span class="tag">${t}</span>`).join("");
+    const ds = new Date(n.deadline).toLocaleString();
+    const priTag = `<span class="badge points">${n.priorityName}</span>`;
+    const btns = cls === "pending"
+      ? `<button onclick="completeEvent(${n.id})">标记完成</button>
+         <button class="secondary" onclick="deleteEvent(${n.id})">删除</button>`
+      : `<button class="secondary" onclick="deleteEvent(${n.id})">删除</button>`;
+    return `<div class="event ${cls}">
+      <strong>[${cls}] ${n.title}</strong> ${priTag} ${tags}
+      <div>截止: ${ds} | 提前: ${n.remindMinutes} 分钟 | id=${n.id}</div>
+      <div>${n.content || ""}</div>
+      <div>${btns}</div>
+    </div>`;
+  }).join("");
+  document.getElementById("eventList").innerHTML = html || "(空)";
+}
+async function completeEvent(id) {
+  const r = await call("POST", `/api/event/${id}/complete`);
+  if (r.ok) {
+    alert("鼓励语: " + r.data.encouragement + "\n" + r.data.promote);
+    loadUserInfo(); loadPoints(); loadList("all");
+  } else alert(r.message);
+}
+async function deleteEvent(id) {
+  if (!confirm("确认删除？")) return;
+  const r = await call("DELETE", `/api/event/${id}`);
+  if (r.ok) loadList("all"); else alert(r.message);
+}
+async function scanUpcoming() {
+  const r = await call("GET", "/api/event/upcoming");
+  if (r.ok && r.data.length > 0) alert("提醒: " + r.data.map(n => n.title).join("、"));
+  else alert("暂无提醒");
+}
+
+function showErr(id, msg) { document.getElementById(id).textContent = msg; document.getElementById(id).className = "err"; }
+function showOk(id, msg) { document.getElementById(id).textContent = msg; document.getElementById(id).className = "ok-msg"; }
+
+if (token) enterApp();
+</script>
+</body>
+</html>
